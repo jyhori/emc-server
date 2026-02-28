@@ -4,24 +4,17 @@ const app = express();
 
 app.use(express.json());
 
-// ========== CORS FIX - ВСТАВЬТЕ ЭТО ==========
+// ========== CORS FIX ==========
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-    
-    // Handle preflight requests
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
     next();
 });
-// ========== КОНЕЦ CORS FIX ==========
 
-// ДАЛЬШЕ ИДЕТ ВАШ КОД...
-
-// ========== ПРАВИЛЬНАЯ КОНФИГУРАЦИЯ ==========
-const CONFIG = {
 // ========== ПРАВИЛЬНАЯ КОНФИГУРАЦИЯ ==========
 const CONFIG = {
     crystal: {
@@ -31,13 +24,35 @@ const CONFIG = {
     }
 };
 
-// В ЭНДПОИНТЕ /api/withdraw:
-headers: { 
-    'Authorization': `Bearer ${CONFIG.crystal.apiKey}`, // ТЕПЕРЬ ПРАВИЛЬНО!
-    'Content-Type': 'application/json'
-}
+app.post('/api/withdraw', async (req, res) => {
+    try {
+        const { amount, destination, method } = req.body;
         
-        console.log('CrystalPay response:', response.data);
+        console.log('=== НОВЫЙ ЗАПРОС НА ВЫВОД ===');
+        console.log('1. Данные от клиента:', { amount, destination, method });
+        console.log('2. Использую apiKey:', CONFIG.crystal.apiKey.substring(0, 10) + '...');
+        console.log('3. Project ID:', CONFIG.crystal.projectId);
+        
+        // ПОДГОТОВКА ЗАПРОСА К CRYSTALPAY
+        const crystalMethod = method === 'card' ? 'bank_card' : 'usdt_trc20';
+        const payload = {
+            amount: amount,
+            currency: 'RUB',
+            method: crystalMethod,
+            wallet: destination,
+            project_id: CONFIG.crystal.projectId
+        };
+        
+        console.log('4. Отправляю в CrystalPay:', JSON.stringify(payload, null, 2));
+        
+        const response = await axios.post('https://api.crystalpay.io/v1/withdraw/create/', payload, {
+            headers: { 
+                'Authorization': `Bearer ${CONFIG.crystal.apiKey}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        console.log('5. Успешный ответ от CrystalPay:', response.data);
         
         if (response.data && response.data.id) {
             res.json({ 
@@ -48,11 +63,16 @@ headers: {
         } else {
             res.status(500).json({ 
                 success: false, 
-                message: response.data?.message || "Ошибка" 
+                message: response.data?.message || "Ошибка CrystalPay" 
             });
         }
+        
     } catch (error) {
-        console.error('Error:', error.response?.data || error.message);
+        console.error('=== ОШИБКА ===');
+        console.error('Статус ошибки:', error.response?.status);
+        console.error('Данные ошибки:', JSON.stringify(error.response?.data, null, 2));
+        console.error('Сообщение:', error.message);
+        
         res.status(500).json({ 
             success: false, 
             message: error.response?.data?.message || error.message 
@@ -66,7 +86,6 @@ app.get('/api/test', (req, res) => {
         message: "Сервер работает!",
         config: {
             project: CONFIG.crystal.projectId
-            // Ключи не показываем!
         }
     });
 });
@@ -74,4 +93,5 @@ app.get('/api/test', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`✅ Server running on port ${PORT}`);
+    console.log(`🔑 Проект: ${CONFIG.crystal.projectId}`);
 });
