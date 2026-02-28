@@ -4,6 +4,22 @@ const app = express();
 
 app.use(express.json());
 
+// ========== CORS FIX - ВСТАВЬТЕ ЭТО ==========
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    
+    // Handle preflight requests
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+// ========== КОНЕЦ CORS FIX ==========
+
+// ДАЛЬШЕ ИДЕТ ВАШ КОД...
+
 // ========== ПРАВИЛЬНАЯ КОНФИГУРАЦИЯ ==========
 const CONFIG = {
     crystal: {
