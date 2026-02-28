@@ -23,9 +23,9 @@ app.use((req, res, next) => {
 // ========== ПРАВИЛЬНАЯ КОНФИГУРАЦИЯ ==========
 const CONFIG = {
     crystal: {
-        apiKey: '19c4571402d368303deeb3e6a972bf07cba9d999', // Salt - для авторизации
+        apiKey: 'c59255224d64c57afffc67c4a88d3f9a73145ea0f', // Salt - для авторизации
         projectId: 'systememc',
-        secretKey: 'c59255224d64c57afffc67c4a88d3f9a73145ea0f' // Secret - для подписей
+        secretKey: '19c4571402d368303deeb3e6a972bf07cba9d999' // Secret - для подписей
     }
 };
 
