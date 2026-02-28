@@ -22,31 +22,20 @@ app.use((req, res, next) => {
 
 // ========== ПРАВИЛЬНАЯ КОНФИГУРАЦИЯ ==========
 const CONFIG = {
+// ========== ПРАВИЛЬНАЯ КОНФИГУРАЦИЯ ==========
+const CONFIG = {
     crystal: {
-        apiKey: 'c59255224d64c57afffc67c4a88d3f9a73145ea0f', // Salt - для авторизации
+        apiKey: 'c59255224d64c57afffc67c4a88d3f9a73145ea0f', // Secret - для Bearer
         projectId: 'systememc',
-        secretKey: '19c4571402d368303deeb3e6a972bf07cba9d999' // Secret - для подписей
+        secretKey: '19c4571402d368303deeb3e6a972bf07cba9d999' // Salt - для подписей
     }
 };
 
-app.post('/api/withdraw', async (req, res) => {
-    try {
-        const { amount, destination, method } = req.body;
-        
-        console.log('Withdraw request:', { amount, destination, method });
-        
-        const response = await axios.post('https://api.crystalpay.io/v1/withdraw/create/', {
-            amount: amount,
-            currency: 'RUB',
-            method: method === 'card' ? 'bank_card' : 'usdt_trc20',
-            wallet: destination,
-            project_id: CONFIG.crystal.projectId
-        }, {
-            headers: { 
-                'Authorization': `Bearer ${CONFIG.crystal.apiKey}`, // Правильно: Secret
-                'Content-Type': 'application/json'
-            }
-        });
+// В ЭНДПОИНТЕ /api/withdraw:
+headers: { 
+    'Authorization': `Bearer ${CONFIG.crystal.apiKey}`, // ТЕПЕРЬ ПРАВИЛЬНО!
+    'Content-Type': 'application/json'
+}
         
         console.log('CrystalPay response:', response.data);
         
